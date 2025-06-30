@@ -23,9 +23,10 @@ app.post('/api/legal', async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }]
-      })
+  model: "gpt-3.5-turbo",
+  messages: [{ role: "user", content: prompt }]
+})
+
     });
 
     const data = await openaiRes.json();
