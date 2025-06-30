@@ -12,17 +12,7 @@ app.use(express.json());
 app.post('/api/legal', async (req, res) => {
   const userQuestion = req.body.question;
 
-  const messages = [
-    {
-      role: "system",
-      content:
-        "You are a paralegal AI trained to answer common U.S. legal questions in plain English for non-lawyers. Always preface with: 'This is not legal advice.' Categorize the response and include links to relevant legal resources if possible."
-    },
-    {
-      role: "user",
-      content: userQuestion
-    }
-  ];
+  const prompt = `You are a paralegal AI trained to answer common U.S. legal questions for non-lawyers in plain English. Always preface with: 'This is not legal advice.' Categorize your response and include links to relevant legal resources if possible.\n\nQuestion: ${userQuestion}`;
 
   try {
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -33,29 +23,27 @@ app.post('/api/legal', async (req, res) => {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages
+        messages: [{ role: "user", content: prompt }]
       })
     });
 
     if (!openaiRes.ok) {
       const errorText = await openaiRes.text();
       console.error("OpenAI API error:", errorText);
-      return res.status(openaiRes.status).json({ error: "OpenAI API error", details: errorText });
+      return res.status(openaiRes.status).json({
+        error: "OpenAI API error",
+        details: errorText
+      });
     }
 
     const data = await openaiRes.json();
     res.json({ response: data.choices[0].message.content });
 
   } catch (error) {
-    console.error("Server error:", error);
+    console.error("Server error:", error.message);
     res.status(500).json({ error: "Failed to fetch OpenAI response." });
   }
 });
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
